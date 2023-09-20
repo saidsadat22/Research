@@ -8,6 +8,7 @@ import argparse
 import subprocess
 import shutil
 
+# a bug
 
 cap = cv2.VideoCapture("SLBE_20230904_095801.mp4")
 
