@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+
+# prerequisites:  opencv matplotlib numpy
+
 import cv2
 import numpy as np
 import os
@@ -98,14 +102,14 @@ imgmedian = np.median(imgs, axis=0)
 def labelimage(img, str):
     
     # font
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    font = cv2.FONT_HERSHEY_COMPLEX_SMALL
       
     # org
     org = (0, 20)
     org1 = (1,21)
       
     # fontScale
-    fontScale = 0.5
+    fontScale = 1.0
        
     # Blue color in BGR
     color = (255,255,255)
@@ -131,13 +135,12 @@ def labelimage(img, str):
 
 i = 4
 while True:
-    imgsav = []
+    imgsav = [ labelimage(imgs[i], f"Original image imgs[i] i={i}") ]
 
     imgmedian = np.median(imgs[i-4:i+5], axis=0)
-    imgsav += [ labelimage(imgmedian[...,1],"image median") ]
+    imgsav += [ labelimage(imgmedian[...,1],"median of 9 frames imgs[i-4:i+5]") ]
     
     
-    imgsav += [ labelimage(imgs[i], "Org image") ]
     print(imgsav)
     print(f"imgsav[-1].shape = {imgsav[-1].shape}")
     
@@ -156,22 +159,22 @@ while True:
 
     #imgdiff = cv2.threshold(imgdiff, np.percentile(imgdiff,99.9), 255, cv2.THRESH_BINARY)[1]
     imgdiff = cv2.threshold(imgdiff, 40, 255, cv2.THRESH_BINARY)[1]
-    imgsav += [ labelimage(255- imgdiff.copy(),"thresholded") ]
+    imgsav += [ labelimage(imgdiff.copy(),"thresholded") ]
 
     imgdiff = cv2.erode(imgdiff, None, iterations=1)
     imgsav += [labelimage(imgdiff.copy(),"eroded") ]
     imgdiff = cv2.dilate(imgdiff, None, iterations=3)
     imgsav += [ labelimage(imgdiff.copy(),"dilated") ]
 
-    imgdiff = cv2.medianBlur(imgdiff, 9)
-    imgdiff = cv2.GaussianBlur(imgdiff, (15, 15), 15)
+    #imgdiff = cv2.medianBlur(imgdiff, 3)
+    imgdiff = cv2.GaussianBlur(imgdiff, (5, 5), 3)
     imgdiff = cv2.threshold(imgdiff, np.percentile(imgdiff,90), 255, cv2.THRESH_BINARY)[1]
     imgdif2 = cv2.dilate(imgdiff, None, iterations=3)
     imgdog = cv2.absdiff(imgdiff, imgdif2)
     orgi = imgs[i]
     newi = imgs[i].copy()
-    # newi[imgdog>0] = [0,0,1]
-
+    newi[imgdog>0] = [0,0,1]
+    imgsav += [ labelimage(newi,"borders are | dilate(threshold(blur(img))) - threshold(blur(img)) |") ]
     #newi[imgdiff==0] = np.mean(imgs[i], axis=(0,1))
     cv2.imshow("DOG", np.concatenate(imgsav)) #imgs[i]) #*imgdiff/255) #*imgs[i]/255) #np.concatenate((imgfrombg), axis=0))
     key = cv2.waitKey(0)
