@@ -12,7 +12,7 @@ import argparse
 import subprocess
 import shutil
 
-# a bug
+# a bat
 
 cap = cv2.VideoCapture("SLBE_20230904_095801.mp4")
 
