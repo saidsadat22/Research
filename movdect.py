@@ -102,14 +102,14 @@ imgmedian = np.median(imgs, axis=0)
 def labelimage(img, str):
     
     # font
-    font = cv2.FONT_HERSHEY_COMPLEX_SMALL
+    font = cv2.FONT_HERSHEY_SIMPLEX
       
     # org
     org = (0, 20)
     org1 = (1,21)
       
     # fontScale
-    fontScale = 1.0
+    fontScale = .5
        
     # Blue color in BGR
     color = (255,255,255)
@@ -123,7 +123,10 @@ def labelimage(img, str):
         imgout = cv2.cvtColor(np.float32(img), cv2.COLOR_GRAY2BGR)
     else:
         imgout = img.copy()
-        
+    
+    imgout = cv2.resize(imgout.copy(),(int(imgout.shape[1]*0.75) , int(imgout.shape[0]*0.75)))
+
+    
     # put text on the image
     imgout = cv2.putText(imgout, str, org1, font, 
                    fontScale, color1, thickness, cv2.LINE_AA,bottomLeftOrigin = False )   
@@ -175,6 +178,21 @@ while True:
     newi = imgs[i].copy()
     newi[imgdog>0] = [0,0,1]
     imgsav += [ labelimage(newi,"borders are | dilate(threshold(blur(img))) - threshold(blur(img)) |") ]
+    imgmask = cv2.GaussianBlur(imgdif2.copy(), (11,11), 7)/255.0
+    
+    imgmask = np.stack( [ imgmask ]*3 , axis = 2)
+    imgmean = imgs[i].copy()
+    imgmean[...,0] = imgmean[...,0].mean()
+    imgmean[...,1] = imgmean[...,1].mean()
+    imgmean[...,2] = imgmean[...,2].mean()
+    maskresult = imgs[i]*imgmask + np.mean(imgs[i])*(1.0-imgmask)
+    maskresult = imgs[i].copy()
+    maskresult[...,0] = imgs[i][...,0]*imgmask[...,0] #+ imgmean[...,0]*(1.0-imgmask[...,0])
+    maskresult[...,1] = imgs[i][...,1]*imgmask[...,1] #+ imgmean[...,1]*(1.0-imgmask[...,1])
+    maskresult[...,2] = imgs[i][...,2]*imgmask[...,2] #+ imgmean[...,2]*(1.0-imgmask[...,2])
+    
+    
+    imgsav += [ labelimage(maskresult,"masked with mean" ) ]
     #newi[imgdiff==0] = np.mean(imgs[i], axis=(0,1))
     cv2.imshow("DOG", np.concatenate(imgsav)) #imgs[i]) #*imgdiff/255) #*imgs[i]/255) #np.concatenate((imgfrombg), axis=0))
     key = cv2.waitKey(0)
